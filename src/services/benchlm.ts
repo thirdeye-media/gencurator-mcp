@@ -34,16 +34,9 @@ function normalizeModel(
   const categoryScore = pickScoreForCategory(raw.categoryScores, category);
   const benchmark = categoryScore ?? overall;
 
+  // Keep tags minimal — category scores are already in benchmark_score; no need to repeat them all.
   const tags: string[] = [];
   if (raw.sourceType) tags.push(`type:${raw.sourceType}`);
-  if (category && categoryScore != null) tags.push(`${category}:${categoryScore}`);
-  if (raw.categoryScores) {
-    for (const [cat, score] of Object.entries(raw.categoryScores)) {
-      if (score == null) continue;
-      if (category && cat === category.replace(/-([a-z])/g, (_, c) => c.toUpperCase())) continue;
-      tags.push(`${cat}:${score}`);
-    }
-  }
 
   const inputCost = typeof raw.inputPrice === "number" ? raw.inputPrice : null;
   const outputCost = typeof raw.outputPrice === "number" ? raw.outputPrice : null;

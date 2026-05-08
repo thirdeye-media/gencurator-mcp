@@ -1,70 +1,86 @@
 import type { RankedModel } from "../types.js";
 
-/** Format a single model as a Markdown block */
+/** Format a single model as a compact Markdown block (used in recommend output) */
 export function modelToMarkdown(m: RankedModel, index?: number): string {
-  const prefix = index != null ? `### ${index}. ` : "### ";
-  const lines: string[] = [
-    `${prefix}${m.name}`,
-    `**Creator:** ${m.creator}  |  **Source:** ${m.source}`,
-  ];
+  const prefix = index != null ? `${index}. ` : "";
+  const score = m.elo_score != null
+    ? `Elo ${m.elo_score}`
+    : m.benchmark_score != null
+      ? `Score ${m.benchmark_score}`
+      : null;
+  const price = m.pricing
+    ? [
+        m.pricing.input_cost != null ? `$${m.pricing.input_cost.toFixed(2)} in` : null,
+        m.pricing.output_cost != null ? `$${m.pricing.output_cost.toFixed(2)} out` : null,
+      ].filter(Boolean).join("/")
+    : null;
+  const perf = m.performance?.throughput != null ? `${m.performance.throughput.toFixed(0)} tok/s` : null;
 
-  if (m.elo_score != null) lines.push(`**Elo:** ${m.elo_score}`);
-  if (m.benchmark_score != null) lines.push(`**Benchmark:** ${m.benchmark_score}`);
-
-  if (m.pricing) {
-    const parts: string[] = [];
-    if (m.pricing.input_cost != null) parts.push(`Input $${m.pricing.input_cost.toFixed(2)}`);
-    if (m.pricing.output_cost != null) parts.push(`Output $${m.pricing.output_cost.toFixed(2)}`);
-    if (parts.length) lines.push(`**Pricing** (${m.pricing.unit}): ${parts.join(" / ")}`);
-  }
-
-  if (m.performance) {
-    const parts: string[] = [];
-    if (m.performance.throughput != null) parts.push(`${m.performance.throughput.toFixed(1)} tok/s`);
-    if (m.performance.latency != null) parts.push(`${m.performance.latency.toFixed(0)}ms latency`);
-    if (parts.length) lines.push(`**Performance:** ${parts.join(" / ")}`);
-  }
-
-  if (m.tags.length > 0) {
-    lines.push(`**Tags:** ${m.tags.slice(0, 6).join(", ")}`);
-  }
-
-  return lines.join("\n");
+  const meta = [m.creator, score, price, perf].filter(Boolean).join(" · ");
+  return `**${prefix}${m.name}** — ${meta}`;
 }
 
-/** Format a list of models as Markdown */
+/** Format a list of models as a compact Markdown table */
 export function leaderboardToMarkdown(
   models: RankedModel[],
   title: string,
 ): string {
   if (models.length === 0) return `## ${title}\n\nNo models found.`;
-  const header = `## ${title}\n\n*${models.length} model(s) — data from ${models[0].source}*\n`;
-  const body = models.map((m, i) => modelToMarkdown(m, i + 1)).join("\n\n");
-  return `${header}\n${body}`;
+
+  // Detect which columns have data across the result set
+  const hasElo = models.some((m) => m.elo_score != null);
+  const hasScore = models.some((m) => m.benchmark_score != null);
+  const hasPricing = models.some((m) => m.pricing != null);
+  const hasSpeed = models.some((m) => m.performance?.throughput != null);
+  const multiSource = new Set(models.map((m) => m.source)).size > 1;
+
+  type Col = { header: string; cell: (m: RankedModel) => string };
+  const cols: Col[] = [
+    { header: "#", cell: (m) => String(m.rank) },
+    { header: "Model", cell: (m) => m.name },
+    { header: "Creator", cell: (m) => m.creator },
+    ...(hasElo ? [{ header: "Elo", cell: (m: RankedModel) => m.elo_score != null ? String(m.elo_score) : "—" }] : []),
+    ...(hasScore ? [{ header: "Score", cell: (m: RankedModel) => m.benchmark_score != null ? String(m.benchmark_score) : "—" }] : []),
+    ...(hasPricing ? [
+      { header: "In$/1M", cell: (m: RankedModel) => m.pricing?.input_cost != null ? `$${m.pricing.input_cost.toFixed(2)}` : "—" },
+      { header: "Out$/1M", cell: (m: RankedModel) => m.pricing?.output_cost != null ? `$${m.pricing.output_cost.toFixed(2)}` : "—" },
+    ] : []),
+    ...(hasSpeed ? [{ header: "tok/s", cell: (m: RankedModel) => m.performance?.throughput != null ? String(m.performance.throughput.toFixed(0)) : "—" }] : []),
+    ...(multiSource ? [{ header: "Source", cell: (m: RankedModel) => m.source }] : []),
+  ];
+
+  const header = `## ${title}\n`;
+  const tableHeader = `| ${cols.map((c) => c.header).join(" | ")} |`;
+  const tableSep = `| ${cols.map(() => "---").join(" | ")} |`;
+  const tableRows = models.map((m) => `| ${cols.map((c) => c.cell(m)).join(" | ")} |`);
+
+  return [header, tableHeader, tableSep, ...tableRows].join("\n");
 }
 
 /** Format a comparison table in Markdown */
 export function comparisonToMarkdown(models: RankedModel[]): string {
   if (models.length === 0) return "No models found for comparison.";
 
-  const header = `## Model comparison\n`;
-  const cols = ["Model", "Creator", "Elo", "Benchmark", "Input cost", "Throughput", "Source"];
-  const sep = cols.map(() => "---");
+  const multiSource = new Set(models.map((m) => m.source)).size > 1;
+  const cols = [
+    "Model", "Creator", "Elo", "Score", "In$/1M", "Out$/1M", "tok/s",
+    ...(multiSource ? ["Source"] : []),
+  ];
   const rows = models.map((m) => [
     m.name,
     m.creator,
     m.elo_score != null ? String(m.elo_score) : "—",
     m.benchmark_score != null ? String(m.benchmark_score) : "—",
     m.pricing?.input_cost != null ? `$${m.pricing.input_cost.toFixed(2)}` : "—",
-    m.performance?.throughput != null ? `${m.performance.throughput.toFixed(1)} tok/s` : "—",
-    m.source,
+    m.pricing?.output_cost != null ? `$${m.pricing.output_cost.toFixed(2)}` : "—",
+    m.performance?.throughput != null ? `${m.performance.throughput.toFixed(0)} tok/s` : "—",
+    ...(multiSource ? [m.source] : []),
   ]);
 
-  const table = [
+  return [
+    "## Model comparison",
     `| ${cols.join(" | ")} |`,
-    `| ${sep.join(" | ")} |`,
+    `| ${cols.map(() => "---").join(" | ")} |`,
     ...rows.map((r) => `| ${r.join(" | ")} |`),
   ].join("\n");
-
-  return `${header}\n${table}`;
 }
