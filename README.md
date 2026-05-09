@@ -11,9 +11,23 @@ An MCP server built for **creative professionals** who need to find the right ge
 > *"Fastest TTS for my podcast, under $5 per million characters?"*
 > *"Compare Flux, DALL-E 3, and Midjourney for e-commerce work."*
 
-Works with **any [Model Context Protocol](https://modelcontextprotocol.io) client** — Claude Desktop, Claude Code, [Msty](https://msty.app), Cursor, Continue, Zed, Cline, Goose, [LibreChat](https://docs.librechat.ai/features/mcp.html), or anything else that speaks MCP.
+**GenCurator is fully platform agnostic.** It speaks the open [Model Context Protocol](https://modelcontextprotocol.io) standard, so it works with any MCP-compatible client — Claude Desktop, Claude Code, Cursor, Continue, Zed, Cline, Goose, [LibreChat](https://docs.librechat.ai/features/mcp.html), and more. You are never locked in to a single AI provider or app.
+
+If you want to stay truly independent — running models via API keys or locally — [Msty](https://msty.app) is worth a look. It supports MCP, works with any API-based or local model, and is a natural home for GenCurator if you want to test and compare models without committing to one platform.
 
 **Contributions are very welcome.** See [CONTRIBUTING.md](CONTRIBUTING.md) — especially if you work in a creative field and have ideas for better model scoring or new data sources.
+
+---
+
+## Think of it as a consultant, not a report
+
+GenCurator fetches live data and surfaces it through conversation — it does not auto-generate a formatted report. **The quality and depth of the output depends on the model you are using and the questions you ask.** Treat it as an expert you can interrogate:
+
+- Ask follow-up questions. *"Why did you rank that one first?"* or *"Which of these came from GenCurator's data and which from your own knowledge?"*
+- Ask for sources. The underlying model may add its own recommendations on top of the live data — asking it to separate the two keeps things honest.
+- Be specific. The more context you give about your task, format, platform, and constraints, the more useful the recommendation.
+
+There is no single correct answer to "what is the best model" — context always matters, and GenCurator is a starting point for that conversation, not the end of it.
 
 ---
 
@@ -46,6 +60,8 @@ The `ranking_recommend` tool takes a plain-language description of your task and
 | **Hugging Face Hub** | All | Open model metadata, downloads, community metrics | Optional (for gated models) |
 | **OpenRouter** | Text | 300+ models with live pricing | No |
 | **BenchLM** | Text | Capability scores by category (coding, reasoning, agentic, …) | No |
+| **Arena.ai** | Text | Human-preference Elo from 6M+ head-to-head battles across 350+ models | No |
+| **EQ-Bench** | Text | LLM-judged creative writing and emotional-intelligence benchmarks | No |
 
 If a key is missing or a source errors out, GenCurator skips that source, returns what it could gather from the others, and surfaces the skipped sources as warnings in the response.
 
@@ -74,57 +90,32 @@ If you see something like `v20.11.0`, you're good. If you get "command not found
 
 ---
 
-**Step 2 — Download GenCurator**
+**Step 2 — Get a free API key**
 
-In your terminal, navigate to a folder where you keep projects (e.g. your Documents folder) and run:
-
-```bash
-cd ~/Documents
-git clone https://github.com/thirdeyexyz/gencurator-mcp.git
-cd gencurator-mcp
-npm install
-npm run build
-```
-
-This downloads the code and compiles it. You only do this once.
+GenCurator pulls live rankings from [Artificial Analysis](https://artificialanalysis.ai/). Their data is free — create an account and generate an API key at `https://artificialanalysis.ai/`. It takes about 2 minutes.
 
 ---
 
-**Step 3 — Get a free API key**
+**Step 3 — Connect to your AI client**
 
-GenCurator pulls live rankings from [Artificial Analysis](https://artificialanalysis.ai/). Their data is free — you just need to create an account and generate an API key at `https://artificialanalysis.ai/`. It takes about 2 minutes.
+GenCurator works with any MCP-compatible app. Two good starting points:
 
----
-
-**Step 4 — Find your installation path**
-
-You need to tell your AI client exactly where GenCurator lives on your computer. Run this command:
-
-```bash
-pwd
-```
-
-It will print something like `/Users/yourname/Documents/gencurator-mcp`. Write that down — you'll use it in the next step as `/Users/yourname/Documents/gencurator-mcp/dist/index.js`.
-
----
-
-**Step 5 — Connect to Claude Desktop**
-
-Open the file `~/Library/Application Support/Claude/claude_desktop_config.json` in any text editor. If you're not sure how to find it, in Finder press `Cmd+Shift+G` and paste that path.
-
-Add the following inside the `"mcpServers"` section (replace the path and key with yours):
+- **[Msty](https://msty.app)** — if you want to stay platform-independent and switch between API-backed or local models freely. Go to **Settings → Model Context Protocol → Add MCP Server**, choose **stdio**, set Command to `npx` and Args to `-y gencurator-mcp`.
+- **Claude Desktop** — open `~/Library/Application Support/Claude/claude_desktop_config.json` and add inside `"mcpServers"`:
 
 ```json
 "gencurator": {
-  "command": "node",
-  "args": ["/Users/yourname/Documents/gencurator-mcp/dist/index.js"],
+  "command": "npx",
+  "args": ["-y", "gencurator-mcp"],
   "env": {
     "ARTIFICIAL_ANALYSIS_API_KEY": "your_key_here"
   }
 }
 ```
 
-Fully quit and relaunch Claude Desktop (`Cmd+Q` on macOS — closing the window is not enough). You're done.
+Fully quit and relaunch your client. You're done.
+
+> **That's it.** No downloading, no building. `npx` fetches GenCurator automatically and always keeps it up to date.
 
 ---
 
@@ -138,30 +129,31 @@ Ask Claude: *"What's the best image generation model for photorealistic product 
 
 ## Quick start
 
-### 1. Install dependencies
+### 1. Get a free API key
 
-```bash
-npm install
-npm run build
-```
+GenCurator pulls live rankings from [Artificial Analysis](https://artificialanalysis.ai/) — create a free account and generate a key. It takes 2 minutes.
 
-### 2. Configure API keys
+### 2. Connect to your MCP client
 
-```bash
-# Required — get a free key at https://artificialanalysis.ai/
-export ARTIFICIAL_ANALYSIS_API_KEY="your_key_here"
-
-# Optional — only needed for gated Hugging Face models
-export HF_TOKEN="hf_your_token_here"
-```
-
-Or copy `.env.example` to `.env` and fill it in.
-
-### 3. Connect to your MCP client
-
-GenCurator speaks the standard MCP protocol over stdio (default) or Streamable HTTP. Pick the section for your client:
+GenCurator works with any MCP-compatible client — it is not tied to any single AI provider or app. Pick yours below:
 
 <details open>
+<summary><b>Msty — recommended for model-agnostic workflows</b></summary>
+
+[Msty](https://msty.app) is a great home for GenCurator if you want to stay platform-independent: it works with any API-backed or locally-running model, so you can ask GenCurator which model to use and immediately switch to it — all within the same app.
+
+In Msty: **Settings → Model Context Protocol → Add MCP Server**. Choose **stdio**, then fill in:
+
+- **Name:** `gencurator`
+- **Command:** `npx`
+- **Args:** `-y gencurator-mcp`
+- **Env:** `ARTIFICIAL_ANALYSIS_API_KEY=your_key_here`
+
+Save and toggle the server on. The tools become available to any chat that has MCP enabled.
+
+</details>
+
+<details>
 <summary><b>Claude Desktop</b></summary>
 
 Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
@@ -170,8 +162,8 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 {
   "mcpServers": {
     "gencurator": {
-      "command": "node",
-      "args": ["/absolute/path/to/gencurator-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "gencurator-mcp"],
       "env": {
         "ARTIFICIAL_ANALYSIS_API_KEY": "your_key_here"
       }
@@ -190,24 +182,10 @@ Fully quit and relaunch Claude Desktop (Cmd-Q on macOS — closing the window is
 ```bash
 claude mcp add gencurator \
   --env ARTIFICIAL_ANALYSIS_API_KEY=your_key_here \
-  -- node /absolute/path/to/gencurator-mcp/dist/index.js
+  -- npx -y gencurator-mcp
 ```
 
 Run `/mcp` inside Claude Code to confirm it's connected.
-
-</details>
-
-<details>
-<summary><b>Msty</b></summary>
-
-In Msty: **Settings → Model Context Protocol → Add MCP Server**. Choose **stdio**, then fill in:
-
-- **Name:** `gencurator`
-- **Command:** `node`
-- **Args:** `/absolute/path/to/gencurator-mcp/dist/index.js`
-- **Env:** `ARTIFICIAL_ANALYSIS_API_KEY=your_key_here`
-
-Save and toggle the server on. The tools become available to any chat that has MCP enabled.
 
 </details>
 
@@ -220,8 +198,8 @@ Edit `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` in a project:
 {
   "mcpServers": {
     "gencurator": {
-      "command": "node",
-      "args": ["/absolute/path/to/gencurator-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "gencurator-mcp"],
       "env": { "ARTIFICIAL_ANALYSIS_API_KEY": "your_key_here" }
     }
   }
@@ -242,8 +220,8 @@ Add to your Zed `settings.json`:
   "context_servers": {
     "gencurator": {
       "command": {
-        "path": "node",
-        "args": ["/absolute/path/to/gencurator-mcp/dist/index.js"],
+        "path": "npx",
+        "args": ["-y", "gencurator-mcp"],
         "env": { "ARTIFICIAL_ANALYSIS_API_KEY": "your_key_here" }
       }
     }
@@ -256,10 +234,10 @@ Add to your Zed `settings.json`:
 <details>
 <summary><b>Continue, Cline, Goose, and other clients</b></summary>
 
-Most MCP clients accept the same shape: a `command`, `args`, and `env`. Point them at:
+Most MCP clients accept the same shape: a `command`, `args`, and `env`. Use:
 
-- **Command:** `node`
-- **Args:** `["/absolute/path/to/gencurator-mcp/dist/index.js"]`
+- **Command:** `npx`
+- **Args:** `["-y", "gencurator-mcp"]`
 - **Env:** `ARTIFICIAL_ANALYSIS_API_KEY=your_key_here` (and optionally `HF_TOKEN`)
 
 </details>
