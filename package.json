@@ -1,6 +1,6 @@
 {
   "name": "gencurator-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "GenCurator — MCP server for generative AI model discovery and curation, focused on creative professionals",
   "main": "dist/index.js",
   "type": "module",
@@ -26,7 +26,16 @@
     "type": "git",
     "url": "https://github.com/thirdeyexyz/gencurator-mcp.git"
   },
-  "keywords": ["mcp", "ai", "generative-ai", "model-rankings", "creative", "image-generation", "leaderboard", "llm"],
+  "keywords": [
+    "mcp",
+    "ai",
+    "generative-ai",
+    "model-rankings",
+    "creative",
+    "image-generation",
+    "leaderboard",
+    "llm"
+  ],
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
