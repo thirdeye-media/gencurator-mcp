@@ -86,6 +86,7 @@ export type BenchLMCategory =
 
 export type EQBenchCategory =
   | "creative-writing"
+  | "creative-writing-longform"
   | "emotional-intelligence";
 
 export type Category = BenchLMCategory | EQBenchCategory;

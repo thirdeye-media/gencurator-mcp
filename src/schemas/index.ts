@@ -17,11 +17,11 @@ export const CategorySchema = z.enum([
   "coding", "agentic", "reasoning", "knowledge", "math",
   "multimodal-grounded", "multilingual", "instruction-following",
   // EQ-Bench leaderboard categories
-  "creative-writing", "emotional-intelligence",
+  "creative-writing", "creative-writing-longform", "emotional-intelligence",
 ]).describe(
   "Capability category filter. " +
   "BenchLM categories: coding, agentic, reasoning, knowledge, math, multimodal-grounded, multilingual, instruction-following. " +
-  "EQ-Bench categories: creative-writing (default), emotional-intelligence."
+  "EQ-Bench categories: creative-writing (default), creative-writing-longform, emotional-intelligence."
 );
 
 export const ResponseFormatSchema = z.enum(["markdown", "json"])

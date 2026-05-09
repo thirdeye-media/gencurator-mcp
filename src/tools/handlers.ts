@@ -39,7 +39,7 @@ function isBenchLMCategory(c: unknown): c is BenchLMCategory {
 }
 
 function isEQBenchCategory(c: unknown): c is EQBenchCategory {
-  return typeof c === "string" && ["creative-writing", "emotional-intelligence"].includes(c);
+  return typeof c === "string" && ["creative-writing", "creative-writing-longform", "emotional-intelligence"].includes(c);
 }
 
 async function getModelsFromSource(

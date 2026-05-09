@@ -60,8 +60,8 @@ The `ranking_recommend` tool takes a plain-language description of your task and
 | **Hugging Face Hub** | All | Open model metadata, downloads, community metrics | Optional (for gated models) |
 | **OpenRouter** | Text | 300+ models with live pricing | No |
 | **BenchLM** | Text | Capability scores by category (coding, reasoning, agentic, …) | No |
-| **Arena.ai** | Text | Human-preference Elo from 6M+ head-to-head battles across 350+ models | No |
-| **EQ-Bench** | Text | LLM-judged creative writing and emotional-intelligence benchmarks | No |
+| **LMArena** | Text | Human-preference Elo from head-to-head battles across 350+ models (via HuggingFace) | No |
+| **EQ-Bench** | Text | LLM-judged creative writing (short + long-form) and emotional-intelligence benchmarks | No |
 
 If a key is missing or a source errors out, GenCurator skips that source, returns what it could gather from the others, and surfaces the skipped sources as warnings in the response.
 

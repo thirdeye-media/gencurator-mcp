@@ -4,8 +4,9 @@ export const API_URLS = {
   HUGGINGFACE: "https://huggingface.co/api",
   OPENROUTER: "https://openrouter.ai/api/v1",
   BENCHLM: "https://benchlm.ai/api/data",
-  ARENA: "https://arena.ai/leaderboard/text",
+  ARENA: "https://datasets-server.huggingface.co/rows",
   EQBENCH_CREATIVE_WRITING: "https://raw.githubusercontent.com/EQ-bench/EQ-bench-site/main/creative_writing.js",
+  EQBENCH_CREATIVE_WRITING_LONGFORM: "https://raw.githubusercontent.com/EQ-bench/EQ-bench-site/main/creative_writing_longform.js",
   EQBENCH_EMOTIONAL_INTELLIGENCE: "https://raw.githubusercontent.com/EQ-bench/EQ-bench-site/main/eqbench3.js",
 } as const;
 
