@@ -100,7 +100,7 @@ GenCurator pulls live rankings from [Artificial Analysis](https://artificialanal
 
 GenCurator works with any MCP-compatible app. Two good starting points:
 
-- **[Msty](https://msty.app)** — if you want to stay platform-independent and switch between API-backed or local models freely. Go to **Settings → Model Context Protocol → Add MCP Server**, choose **stdio**, set Command to `npx` and Args to `-y gencurator-mcp`.
+- **[Msty](https://msty.app)** — if you want to stay platform-independent and switch between API-backed or local models freely. Go to **Settings → Model Context Protocol → Add MCP Server**, enter `gencurator` as the name, and paste the JSON config shown in the Msty section below.
 - **Claude Desktop** — open `~/Library/Application Support/Claude/claude_desktop_config.json` and add inside `"mcpServers"`:
 
 ```json
@@ -142,12 +142,17 @@ GenCurator works with any MCP-compatible client — it is not tied to any single
 
 [Msty](https://msty.app) is a great home for GenCurator if you want to stay platform-independent: it works with any API-backed or locally-running model, so you can ask GenCurator which model to use and immediately switch to it — all within the same app.
 
-In Msty: **Settings → Model Context Protocol → Add MCP Server**. Choose **stdio**, then fill in:
+In Msty: **Settings → Model Context Protocol → Add MCP Server**. Enter `gencurator` as the name and paste the following JSON:
 
-- **Name:** `gencurator`
-- **Command:** `npx`
-- **Args:** `-y gencurator-mcp`
-- **Env:** `ARTIFICIAL_ANALYSIS_API_KEY=your_key_here`
+```json
+{
+  "command": "npx",
+  "args": ["-y", "gencurator-mcp"],
+  "env": {
+    "ARTIFICIAL_ANALYSIS_API_KEY": "your_key_here"
+  }
+}
+```
 
 Save and toggle the server on. The tools become available to any chat that has MCP enabled.
 
