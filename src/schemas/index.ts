@@ -4,13 +4,25 @@ export const ModalitySchema = z.enum(["text", "image", "video", "audio", "music"
   .describe("Generation modality to query");
 
 export const DataSourceSchema = z.enum([
-  "artificial_analysis", "huggingface", "openrouter", "benchlm", "all"
+  "artificial_analysis", "huggingface", "openrouter", "benchlm", "arena", "eqbench", "all"
 ]).describe("Data source to query. Use 'all' to aggregate from every available source.");
 
 export const BenchLMCategorySchema = z.enum([
   "coding", "agentic", "reasoning", "knowledge", "math",
   "multimodal-grounded", "multilingual", "instruction-following",
 ]).describe("BenchLM capability category. Only used when source='benchlm'.");
+
+export const CategorySchema = z.enum([
+  // BenchLM capability categories
+  "coding", "agentic", "reasoning", "knowledge", "math",
+  "multimodal-grounded", "multilingual", "instruction-following",
+  // EQ-Bench leaderboard categories
+  "creative-writing", "emotional-intelligence",
+]).describe(
+  "Capability category filter. " +
+  "BenchLM categories: coding, agentic, reasoning, knowledge, math, multimodal-grounded, multilingual, instruction-following. " +
+  "EQ-Bench categories: creative-writing (default), emotional-intelligence."
+);
 
 export const ResponseFormatSchema = z.enum(["markdown", "json"])
   .default("markdown")
@@ -20,7 +32,7 @@ export const ResponseFormatSchema = z.enum(["markdown", "json"])
 export const GetLeaderboardInput = z.object({
   modality: ModalitySchema,
   source: DataSourceSchema.default("artificial_analysis"),
-  category: BenchLMCategorySchema.optional(),
+  category: CategorySchema.optional(),
   limit: z.number().int().min(1).max(50).default(10)
     .describe("Number of top models to return"),
   response_format: ResponseFormatSchema,
@@ -58,6 +70,7 @@ export const CompareModelsInput = z.object({
 }).strict();
 
 export type GetLeaderboardParams = z.infer<typeof GetLeaderboardInput>;
+export type CategoryParam = z.infer<typeof CategorySchema>;
 export type SearchModelsParams = z.infer<typeof SearchModelsInput>;
 export type RecommendParams = z.infer<typeof RecommendInput>;
 export type CompareModelsParams = z.infer<typeof CompareModelsInput>;

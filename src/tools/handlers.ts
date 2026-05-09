@@ -1,4 +1,4 @@
-import type { RankedModel, Modality, BenchLMCategory } from "../types.js";
+import type { RankedModel, Modality, BenchLMCategory, EQBenchCategory } from "../types.js";
 import type {
   GetLeaderboardParams,
   SearchModelsParams,
@@ -9,6 +9,8 @@ import { fetchAALeaderboard } from "../services/artificial-analysis.js";
 import { fetchHFModels } from "../services/huggingface.js";
 import { fetchORModels } from "../services/openrouter.js";
 import { fetchBenchLMLeaderboard } from "../services/benchlm.js";
+import { fetchArenaLeaderboard } from "../services/arena.js";
+import { fetchEQBenchLeaderboard } from "../services/eqbench.js";
 import { leaderboardToMarkdown, comparisonToMarkdown, recommendToMarkdown, valueIndex } from "./format.js";
 
 interface SourceResult {
@@ -29,12 +31,23 @@ async function safeCall<T>(
   }
 }
 
+function isBenchLMCategory(c: unknown): c is BenchLMCategory {
+  return typeof c === "string" && [
+    "coding", "agentic", "reasoning", "knowledge", "math",
+    "multimodal-grounded", "multilingual", "instruction-following",
+  ].includes(c);
+}
+
+function isEQBenchCategory(c: unknown): c is EQBenchCategory {
+  return typeof c === "string" && ["creative-writing", "emotional-intelligence"].includes(c);
+}
+
 async function getModelsFromSource(
   source: string,
   modality: Modality,
   limit: number,
   search?: string,
-  category?: BenchLMCategory,
+  category?: string,
 ): Promise<SourceResult> {
   const warnings: string[] = [];
 
@@ -64,7 +77,25 @@ async function getModelsFromSource(
       if (modality !== "text") {
         return { models: [], warnings: [`benchlm: only supports text modality (requested ${modality})`] };
       }
-      const r = await safeCall("benchlm", () => fetchBenchLMLeaderboard({ category, limit }));
+      const benchCategory = isBenchLMCategory(category) ? category : undefined;
+      const r = await safeCall("benchlm", () => fetchBenchLMLeaderboard({ category: benchCategory, limit }));
+      if (r.warning) warnings.push(r.warning);
+      return { models: r.value, warnings };
+    }
+    case "arena": {
+      if (modality !== "text") {
+        return { models: [], warnings: [`arena: only supports text modality (requested ${modality})`] };
+      }
+      const r = await safeCall("arena", () => fetchArenaLeaderboard(limit));
+      if (r.warning) warnings.push(r.warning);
+      return { models: r.value, warnings };
+    }
+    case "eqbench": {
+      if (modality !== "text") {
+        return { models: [], warnings: [`eqbench: only supports text modality (requested ${modality})`] };
+      }
+      const eqCategory: EQBenchCategory = isEQBenchCategory(category) ? category : "creative-writing";
+      const r = await safeCall("eqbench", () => fetchEQBenchLeaderboard({ category: eqCategory, limit }));
       if (r.warning) warnings.push(r.warning);
       return { models: r.value, warnings };
     }
@@ -90,9 +121,19 @@ async function getModelsFromSource(
           safeCall("openrouter", () => fetchORModels({ search, limit: Math.min(limit, 10) }))
             .then((r) => ({ source: "openrouter", value: r.value, warning: r.warning }))
         );
+        const benchCategory = isBenchLMCategory(category) ? category : undefined;
         tasks.push(
-          safeCall("benchlm", () => fetchBenchLMLeaderboard({ category, limit: Math.min(limit, 10) }))
+          safeCall("benchlm", () => fetchBenchLMLeaderboard({ category: benchCategory, limit: Math.min(limit, 10) }))
             .then((r) => ({ source: "benchlm", value: r.value, warning: r.warning }))
+        );
+        tasks.push(
+          safeCall("arena", () => fetchArenaLeaderboard(Math.min(limit, 10)))
+            .then((r) => ({ source: "arena", value: r.value, warning: r.warning }))
+        );
+        const eqCategory: EQBenchCategory = isEQBenchCategory(category) ? category : "creative-writing";
+        tasks.push(
+          safeCall("eqbench", () => fetchEQBenchLeaderboard({ category: eqCategory, limit: Math.min(limit, 10) }))
+            .then((r) => ({ source: "eqbench", value: r.value, warning: r.warning }))
         );
       }
 
@@ -109,7 +150,9 @@ async function getModelsFromSource(
       return { models: merged.slice(0, limit), warnings };
     }
     default:
-      throw new Error(`Unknown source: ${source}. Use one of: artificial_analysis, huggingface, openrouter, benchlm, all`);
+      throw new Error(
+        `Unknown source: ${source}. Use one of: artificial_analysis, huggingface, openrouter, benchlm, arena, eqbench, all`
+      );
   }
 }
 
@@ -169,6 +212,22 @@ export async function handleSearchModels(
         : Promise.resolve({ value: [] as RankedModel[], warning: null }),
       mod === "text"
         ? safeCall("benchlm", () => fetchBenchLMLeaderboard({ limit: 50 }).then((all) => {
+            const q = params.query.toLowerCase();
+            return all.filter(
+              (m) => m.name.toLowerCase().includes(q) || m.creator.toLowerCase().includes(q),
+            );
+          }))
+        : Promise.resolve({ value: [] as RankedModel[], warning: null }),
+      mod === "text"
+        ? safeCall("arena", () => fetchArenaLeaderboard(50).then((all) => {
+            const q = params.query.toLowerCase();
+            return all.filter(
+              (m) => m.name.toLowerCase().includes(q) || m.creator.toLowerCase().includes(q),
+            );
+          }))
+        : Promise.resolve({ value: [] as RankedModel[], warning: null }),
+      mod === "text"
+        ? safeCall("eqbench", () => fetchEQBenchLeaderboard({ limit: 50 }).then((all) => {
             const q = params.query.toLowerCase();
             return all.filter(
               (m) => m.name.toLowerCase().includes(q) || m.creator.toLowerCase().includes(q),
@@ -291,7 +350,8 @@ export async function handleRecommend(
     huggingface: "[Hugging Face Hub](https://huggingface.co/models) — download counts and community metadata; no quality score",
     openrouter: "[OpenRouter](https://openrouter.ai/models) — live pricing catalog for 300+ models; no quality score",
     benchlm: "[BenchLM](https://benchlm.ai/) — automated capability scores across coding, reasoning, math, and more",
-    lmarena: "[LM Arena](https://lmarena.ai/) — community Elo from anonymous head-to-head chat battles",
+    arena: "[Arena.ai](https://arena.ai/) — human-preference Elo from 6M+ head-to-head battles across 350+ text models",
+    eqbench: "[EQ-Bench](https://eqbench.com/) — LLM-judged creative writing and emotional-intelligence benchmarks",
   };
 
   const sourcesQueried = [...new Set(allModels.map((m) => m.source))];

@@ -4,6 +4,9 @@ export const API_URLS = {
   HUGGINGFACE: "https://huggingface.co/api",
   OPENROUTER: "https://openrouter.ai/api/v1",
   BENCHLM: "https://benchlm.ai/api/data",
+  ARENA: "https://arena.ai/leaderboard/text",
+  EQBENCH_CREATIVE_WRITING: "https://eqbench.com/creative_writing.html",
+  EQBENCH_EMOTIONAL_INTELLIGENCE: "https://eqbench.com/index.html",
 } as const;
 
 /** Modality to Artificial Analysis endpoint mapping */

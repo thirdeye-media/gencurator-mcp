@@ -38,7 +38,8 @@ export type DataSource =
   | "huggingface"
   | "benchlm"
   | "openrouter"
-  | "lmarena";
+  | "arena"
+  | "eqbench";
 
 /** Cache entry with TTL */
 export interface CacheEntry<T> {
@@ -82,6 +83,12 @@ export type BenchLMCategory =
   | "multimodal-grounded"
   | "multilingual"
   | "instruction-following";
+
+export type EQBenchCategory =
+  | "creative-writing"
+  | "emotional-intelligence";
+
+export type Category = BenchLMCategory | EQBenchCategory;
 
 /** OpenRouter model entry */
 export interface ORModelEntry {

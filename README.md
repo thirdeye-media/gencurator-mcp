@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/gencurator-mcp-banner.png" alt="gencurator-mcp" width="100%">
+</p>
+
 # GenCurator — Generative AI Model Discovery & Curation
 
 An MCP server built for **creative professionals** who need to find the right generative AI model for the task at hand — fast and without wading through benchmarks. Ask it in plain language what you're trying to make, and it tells you what to use.
