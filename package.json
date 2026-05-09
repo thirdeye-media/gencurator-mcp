@@ -1,6 +1,6 @@
 {
   "name": "gencurator-mcp",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "GenCurator — MCP server for generative AI model discovery and curation, focused on creative professionals",
   "main": "dist/index.js",
   "type": "module",
