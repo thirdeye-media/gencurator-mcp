@@ -22,7 +22,7 @@ This document covers everything from first-time setup to opening a PR.
 ## First-time setup
 
 ```bash
-git clone https://github.com/thirdeyexyz/gencurator-mcp.git
+git clone https://github.com/thirdeye-media/gencurator-mcp.git
 cd gencurator-mcp
 npm install
 cp .env.example .env
