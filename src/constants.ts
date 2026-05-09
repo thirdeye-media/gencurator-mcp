@@ -5,8 +5,8 @@ export const API_URLS = {
   OPENROUTER: "https://openrouter.ai/api/v1",
   BENCHLM: "https://benchlm.ai/api/data",
   ARENA: "https://arena.ai/leaderboard/text",
-  EQBENCH_CREATIVE_WRITING: "https://eqbench.com/creative_writing.html",
-  EQBENCH_EMOTIONAL_INTELLIGENCE: "https://eqbench.com/index.html",
+  EQBENCH_CREATIVE_WRITING: "https://raw.githubusercontent.com/EQ-bench/EQ-bench-site/main/creative_writing.js",
+  EQBENCH_EMOTIONAL_INTELLIGENCE: "https://raw.githubusercontent.com/EQ-bench/EQ-bench-site/main/eqbench3.js",
 } as const;
 
 /** Modality to Artificial Analysis endpoint mapping */
